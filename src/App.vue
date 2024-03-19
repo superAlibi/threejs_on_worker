@@ -4,9 +4,10 @@ import { onBeforeMount, onMounted, onUnmounted, ref, unref } from 'vue'
 import State from 'three/examples/jsm/libs/stats.module.js'
 import { GUI } from "dat.gui";
 import { InitEventMessage, ResizeEventMessage } from './worker/types';
+import { useStore } from './store';
 const canvasRef = ref<HTMLCanvasElement>()
 const rendererWorker = new Worker(new URL('./worker/index.ts', import.meta.url), { type: 'module' })
-
+const store = useStore()
 const gui = new GUI(),
   state = new State()
 
@@ -35,7 +36,7 @@ onMounted(() => {
     type: 'init', canvas: offscreen
   }
   rendererWorker.postMessage(messageBody, [offscreen])
-  document.body.append(state.dom)
+  // document.body.append(state.dom)
   resizeObserve.observe(canvas)
   renderLoop()
 })
@@ -49,6 +50,7 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <input type="checkbox" v-model="store.value" />
   <canvas ref="canvasRef"></canvas>
 </template>
 
