@@ -40,11 +40,11 @@ export class EventHandler extends Event {
 
 
 
-    // 后处理通道
+    // 后处理通道,必须加入才能使其他通道生效
     const renderPass = new RenderPass(scene, camera)
     composer.addPass(renderPass)
 
-    // 后处理包装
+    // 外边线shader通道
     const outline = new OutlinePass(new Vector2(width, height), scene, camera);
 
 
@@ -83,15 +83,16 @@ export class EventHandler extends Event {
   resize(width: number, height: number) {
     Object.assign(this.canvas, { width, height })
     this.renderer.setSize(width, height, false)
+    this.composer.setSize(width, height)
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix()
-
   }
 
   begenRender(n?: number) {
     const obj = this.rayCaster.intersectObjects<Mesh<BoxGeometry, MeshLambertMaterial>>(this.scene.children).at(0)
     this.outline.selectedObjects = obj ? [obj.object] : [];
     this.composer.render()
+
     requestAnimationFrame((n) => this.begenRender(n))
   }
 
