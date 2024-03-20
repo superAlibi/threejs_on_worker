@@ -27,5 +27,6 @@ export class EventDispatcher extends Event {
       this.#renderWorker.postMessage(data)
     }, 60)
   }
+  
 
 }
