@@ -11,10 +11,14 @@ import {
 import {
   BoxMatrix
 } from "R/models";
+import { MassageEventAction } from './types';
 
-// 椭圆点位置
+
 const lightPosition = new Vector3(60, 80, 100)
-export class EventHandler extends Event {
+/**
+ * 事件处理器,同时也是渲染器实际内容
+ */
+class EventHandler extends Event {
   public composer!: EffectComposer;
   public rayCaster!: Raycaster
   public renderer!: WebGLRenderer
@@ -92,8 +96,19 @@ export class EventHandler extends Event {
     const obj = this.rayCaster.intersectObjects<Mesh<BoxGeometry, MeshLambertMaterial>>(this.scene.children).at(0)
     this.outline.selectedObjects = obj ? [obj.object] : [];
     this.composer.render()
-
     requestAnimationFrame((n) => this.begenRender(n))
   }
 
 }
+let Handler: EventHandler
+self.addEventListener("message", (e: MessageEvent<MassageEventAction>) => {
+  const { data } = e
+  switch (data.type) {
+    case 'init':
+      Handler = new EventHandler(data.canvas)
+      break;
+    case 'resize':
+      Handler?.resize(data.width, data.height)
+      break;
+  }
+})
