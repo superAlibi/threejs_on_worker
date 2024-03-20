@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vueuse/core": "^10.9.0",
     "dat.gui": "^0.7.9",
     "pinia": "^2.1.7",
     "three": "^0.162.0",

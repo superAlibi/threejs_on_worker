@@ -27,6 +27,19 @@ export class EventDispatcher extends Event {
       this.#renderWorker.postMessage(data)
     }, 60)
   }
-  
+  mouse(e: MouseEvent) {
+    // this.#renderWorker.postMessage()
+    console.log(e);
+    
+  }
+  keyboard(e: KeyboardEvent) {
+    console.log(e);
+
+  }
+  touch(e: TouchEvent) {
+    console.log(e);
+    
+  }
+
 
 }

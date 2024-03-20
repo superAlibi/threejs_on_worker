@@ -30,14 +30,12 @@ class EventHandler extends Event {
 
     super('MessageEventHandlerInit')
     const { width, height } = canvas
-
     const scene = new Scene(),
-
       rayCaster = new Raycaster(),
       camera = new PerspectiveCamera(90, width / height, 1, 1000)
 
     const renderer = new WebGLRenderer({ canvas, antialias: true }),
-      pointLight = new PointLight(0xffffff, 10),
+      pointLight = new PointLight(0xffffff, 1),
       axesHelper = new AxesHelper(100),
       // 后处理效果合成器
       composer = new EffectComposer(renderer)
