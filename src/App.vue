@@ -4,10 +4,10 @@ import { onBeforeMount, onMounted, onUnmounted, ref, unref } from 'vue'
 import State from 'three/examples/jsm/libs/stats.module.js'
 import { GUI } from "dat.gui";
 import { InitEventMessage, ResizeEventMessage } from './worker/types';
-import { useStore } from './store';
+
 const canvasRef = ref<HTMLCanvasElement>()
 const rendererWorker = new Worker(new URL('./worker/index.ts', import.meta.url), { type: 'module' })
-const store = useStore()
+
 const gui = new GUI(),
   state = new State()
 
@@ -16,15 +16,25 @@ function renderLoop() {
   requestAnimationFrame(renderLoop)
 }
 
-const resizeObserve = new ResizeObserver((e, self) => {
-  const info = e.at(0)!
+// 盒子大小发生改变时的延迟执行函数id
+let timeoutid: number
+const resizeObserve = new ResizeObserver((e) => {
+  const { contentRect: { width, height } } = e.at(0)!
 
-  const data: ResizeEventMessage = {
-    type: 'resize',
-    width: info.contentRect.width,
-    height: info.contentRect.height
+  if (timeoutid) {
+    clearTimeout(timeoutid)
   }
-  rendererWorker.postMessage(data)
+  timeoutid = window.setTimeout(() => {
+
+    const data: ResizeEventMessage = {
+      type: 'resize',
+      width: width,
+      height: height
+    }
+    timeoutid = 0
+    rendererWorker.postMessage(data)
+  }, 60)
+
 })
 onMounted(() => {
   const canvas = unref(canvasRef)!
@@ -50,7 +60,6 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <input type="checkbox" v-model="store.value" />
   <canvas ref="canvasRef"></canvas>
 </template>
 
