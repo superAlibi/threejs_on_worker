@@ -1,18 +1,38 @@
 <script setup lang="ts">
-import { onMounted, ref, unref, onBeforeUnmount } from 'vue'
+import { onMounted, ref, unref, onBeforeUnmount, watch } from 'vue'
 import State from 'three/examples/jsm/libs/stats.module.js'
 import { GUI } from "dat.gui";
 import { EventDispatcher } from 'R/worker';
-import { EventSetting } from './types'
+import { EventSetting, GUISetting } from './types'
 import { useEventListener } from '@vueuse/core'
-const props = defineProps<Partial<EventSetting>>()
+interface RenderProp {
+  eventSetting: Partial<EventSetting>,
+  guiSetting: Partial<GUISetting>,
+  stateEnable: boolean
+}
+const props = defineProps<Partial<RenderProp>>()
 
-const canvasRef = ref<HTMLCanvasElement>(),
-  gui = new GUI(),
-  state = new State()
-
+const canvasRef = ref<HTMLCanvasElement>()
+let gui: GUI,
+  state: State
+watch(() => props.guiSetting, (v) => {
+  if (v && !gui) {
+    gui = new GUI(v);
+  } else if (!v) {
+    gui?.destroy()
+  }
+})
+watch(() => props.stateEnable, (v) => {
+  if (v && !state) {
+    const canvas = unref(canvasRef)!
+    state = new State()
+    canvas.parentElement?.appendChild(state.dom)
+  } else if (!v) {
+    state?.dom?.remove()
+  }
+})
 function renderLoop() {
-  state.update()
+  state?.update()
 
   requestAnimationFrame(renderLoop)
 }
@@ -33,7 +53,13 @@ onMounted(() => {
   const offscreen = canvas.transferControlToOffscreen()
   dispatcher.initRender(offscreen)
   resizeObserve.observe(canvas)
-  canvas.parentElement?.appendChild(state.dom)
+  if (props.stateEnable) {
+    state = new State()
+    canvas.parentElement?.appendChild(state.dom)
+  }
+  if(props.guiSetting){
+    gui = new GUI(props.guiSetting);
+  }
   renderLoop()
 
 })
@@ -42,14 +68,19 @@ onBeforeUnmount(() => {
   clearnUp()
   const canvas = unref(canvasRef)!
   if (canvas.parentElement) {
-    state.dom.remove()
+    state?.dom?.remove()
   }
   resizeObserve.disconnect()
-  gui.destroy()
+  gui?.destroy()
 })
-
+function handlerWheelEvent(params: MouseEvent) {
+  if (!props.eventSetting?.wheel) {
+    return
+  }
+  dispatcher.mouse(params)
+}
 function handlerPointerMove(params: MouseEvent) {
-  if (!props.move) {
+  if (!props.eventSetting?.move) {
     return
   }
   dispatcher.mouse(params)
@@ -59,6 +90,6 @@ function handlerPointerMove(params: MouseEvent) {
 
 <template>
   <canvas @pointercancel="dispatcher.mouse" @pointermove="handlerPointerMove" @pointerup="dispatcher.mouse"
-    @pointerdown="dispatcher.mouse" @wheel="dispatcher.mouse" @contextmenu="dispatcher.mouse"
+    @pointerdown="dispatcher.mouse" @wheel.passive="handlerWheelEvent" @contextmenu="dispatcher.mouse"
     class="w-full h-full block" ref="canvasRef"></canvas>
 </template>

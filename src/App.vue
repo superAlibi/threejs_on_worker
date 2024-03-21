@@ -2,5 +2,5 @@
 import Render from './components/render.vue';
 </script>
 <template>
-  <Render></Render>
+  <Render state-enable></Render>
 </template>
