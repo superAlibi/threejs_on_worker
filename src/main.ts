@@ -3,4 +3,9 @@ import App from './App.vue'
 import './style.css'
 import { PiniaInstance } from './store'
 
-createApp(App).use(PiniaInstance).mount('#app')
+const app=createApp(App).use(PiniaInstance)
+app.config.errorHandler=(e,i)=>{
+  console.error(e);
+  
+}
+app.mount('#app')
