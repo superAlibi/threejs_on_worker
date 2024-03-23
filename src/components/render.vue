@@ -18,25 +18,25 @@ let gui: GUI,
   state: State
 watch(() => props.guiSetting, (v) => {
   if (v && !gui) {
-    // gui = new GUI(v);
+    gui = new GUI(v);
   } else if (!v) {
-    // gui?.destroy()
+    gui?.destroy()
   }
 })
 watch(() => props.stateEnable, (v) => {
 
 
   if (v && !state) {
-    // const canvas = unref(canvasRef)!
-    // state = new State()
-    // canvas.parentElement?.appendChild(state.dom)
+    const canvas = unref(canvasRef)!
+    state = new State()
+    canvas.parentElement?.appendChild(state.dom)
   } else if (!v) {
-    // state?.dom?.remove()
+    state?.dom?.remove()
   }
 })
 function renderLoop() {
-  // state?.update()
-  // requestAnimationFrame(renderLoop)
+  state?.update()
+  requestAnimationFrame(renderLoop)
 }
 
 const dispatcher = new EventInteractor()
@@ -55,11 +55,11 @@ onMounted(() => {
   dispatcher.initRender(offscreen)
 
   if (props.stateEnable) {
-    // state = new State()
-    // canvas.parentElement?.appendChild(state.dom)
+    state = new State()
+    canvas.parentElement?.appendChild(state.dom)
   }
   if (props.guiSetting) {
-    // gui = new GUI(props.guiSetting);
+    gui = new GUI(props.guiSetting);
   }
   renderLoop()
 
@@ -68,10 +68,10 @@ onBeforeUnmount(() => {
 
   const canvas = unref(canvasRef)!
   if (canvas.parentElement) {
-    // state?.dom?.remove()
+    state?.dom?.remove()
   }
 
-  // gui?.destroy()
+  gui?.destroy() 
 })
 /**
  * 指针移动回调处理

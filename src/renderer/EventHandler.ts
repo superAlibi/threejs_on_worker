@@ -45,7 +45,7 @@ self.addEventListener("message", (e: MessageEvent<MassageEventAction>) => {
     case 'pointerMove':
       Handler?.pickup(data.x, data.y)
       break;
-    82
+    
   }
 })
 self.addEventListener('error', console.error);
