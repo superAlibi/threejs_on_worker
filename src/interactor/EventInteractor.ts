@@ -33,7 +33,6 @@ export class EventInteractor extends InteractorState {
     return this.currenPointerPosition = domPointerPositionToWEBGLPosition(metaData)
   }
   resize(width: number, height: number) {
-
     if (this.#resizeTimeoutId) {
       clearTimeout(this.#resizeTimeoutId)
     }

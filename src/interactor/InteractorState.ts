@@ -21,6 +21,8 @@ export function domPointerPositionToWEBGLPosition({ width, height, offsetX, offs
   return { x, y }
 }
 export class InteractorState extends EventTarget {
+  width?: number
+  height?: number
   /**
    * 当前已经按住的鼠标键
    */

@@ -14,6 +14,10 @@ import {
 } from "R/models";
 import { CameraSetting, RenderSetting, SceneSetting, Settings } from './types.js';
 
+/**
+ * 事件处理器状态
+ * 内部的坐标系必须是场景坐标系,不能是任何dom坐标系
+ */
 export class EventHandlerState {
   public composer: EffectComposer;
   public rayCaster: Raycaster
@@ -50,21 +54,30 @@ export class EventHandlerState {
 
     this.begenRender()
   }
+  /**
+   * 更新设置
+   * @param setting 
+   */
   setting(setting: Settings) {
+    
     this.sceneSetting(setting.scene)
     this.cameraSetting(setting.camera)
     this.renderSetting(setting.render)
   }
+  /**
+   * 更新相机参数
+   * 只用于setting方法调用
+   * @param setting 相机设置
+   */
   private cameraSetting(setting: CameraSetting) {
     if (setting.position) {
-
       Object.assign(this.camera.position, setting.position)
     }
     this.camera.lookAt(BoxMatrix.position)
   }
   /**
-   * 场景初始化
-   * @param setting 
+   * 只用于setting方法调用
+   * @param setting 场景设置
    */
   private sceneSetting(setting: SceneSetting) {
     const axesHelper = new AxesHelper(setting.axesHelper.lenght)
@@ -88,8 +101,8 @@ export class EventHandlerState {
     }
   }
   /**
-   * 初始化渲染器
-   * @param setting 
+   * 只用于setting方法调用
+   * @param setting 渲染器设置
    */
   private renderSetting(setting: RenderSetting) {
     this.renderer.setClearColor(setting.clearColor.value, setting.clearColor.alpha)

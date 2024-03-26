@@ -2,7 +2,7 @@ import {
   Vector2,
 } from 'three'
 
-import { MassageEventAction, Settings } from './types';
+import {  Settings, } from './types';
 
 
 import { EventHandlerState } from './HandlerState';
@@ -15,26 +15,31 @@ class EventHandler extends EventHandlerState {
   resize(width: number, height: number) {
     Object.assign(this.canvas, { width, height })
     this.renderer.setSize(width, height, false)
-    // this.composer.setSize(width, height)
+    this.composer.setSize(width, height)
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix()
   }
 
-
-  rotate() {
+  /**
+   * 
+   * @param x 
+   * @param y 
+   */
+  rotate(x: number, y: number) {
 
   }
   pickup(x: number, y: number) {
-
     this.rayCaster.setFromCamera(new Vector2(x, y), this.camera)
     const pickups = this.rayCaster.intersectObjects(this.scene.children)
     this.rayHitsSet = pickups
     this.outline.selectedObjects = pickups.map(i => i.object)
   }
 }
+
 let Handler: EventHandler
-self.addEventListener("message", (e: MessageEvent<MassageEventAction>) => {
+self.addEventListener("message", (e: MessageEvent) => {
   const { data } = e
+  
   switch (data.type) {
     case 'init':
       Handler = new EventHandler(data.canvas, { setting: new Settings() })
@@ -42,10 +47,11 @@ self.addEventListener("message", (e: MessageEvent<MassageEventAction>) => {
     case 'resize':
       Handler?.resize(data.width, data.height)
       break;
-    case 'pointerMove':
+    case 'pointer':
       Handler?.pickup(data.x, data.y)
       break;
-    
+    case "settings":
+      Handler?.setting(data.setting)
   }
 })
 self.addEventListener('error', console.error);

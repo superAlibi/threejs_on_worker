@@ -4,12 +4,19 @@ export interface ResizeEventMessage { type: 'resize', width: number, height: num
 export interface MouseMoveEventMessage { type: 'pointerMove', x: number, y: number }
 export interface SettingEventMessage { type: 'pointerMove', x: number, y: number }
 
+
 /**
  * 发送给工作者消息类型定义
  */
 export type MassageEventAction = InitEventMessage | ResizeEventMessage | MouseMoveEventMessage
 
-
+export interface MessageEventMap {
+  init: { canvas: OffscreenCanvas, setting: Settings },
+  resize: { width: number, height: number },
+  pointerMove: { x: number, y: number },
+  settings: { setting: Settings },
+  rotate: { x: number, y: number }
+}
 export interface SceneSetting {
   background: { type?: 'url' | 'hex', value?: string | number },
   ambientLight: {
@@ -117,7 +124,7 @@ export class Settings extends SettingState {
   }
 
   setting(p: SettingState) {
-    Object.assign(this, p)   
+    Object.assign(this, p)
   }
 
 
