@@ -2,7 +2,7 @@
 import { InteractorState, MouseState, PointerTransformData, dom2GLPosition } from "./InteractorState"
 import { Settings } from "../renderer/types"
 import { MOUSE, Vector2 } from "three"
-import { merge } from 'radash'
+
 
 export class EventInteractor extends InteractorState {
   #resizeTimeoutId: number = 0
@@ -55,7 +55,8 @@ export class EventInteractor extends InteractorState {
         const offset = lastXOY.sub(current)
         this.renderWorker.postMessage('rotate', {
           x: offset.x,
-          y: offset.y,
+          // 取反是因为dom转换成gl坐标是y轴方向是反的
+          y: -offset.y,
         })
       }
     } else {

@@ -34,9 +34,9 @@ class EventHandler extends EventHandlerState {
    */
   rotate(x: number, y: number) {
     const euler = new Euler()
-    // euler.setFromQuaternion(this.camera.quaternion)
-    euler.x = -y * Math.PI / 180 / 2
-    euler.y = x * Math.PI / 180 / 2
+    euler.setFromQuaternion(this.camera.quaternion)
+    euler.x += y * Math.PI / 180 / 2
+    euler.y += x * Math.PI / 180 / 2
     console.log('eu',euler.y, euler.x);
     
     const nq = new Quaternion().setFromEuler(euler)

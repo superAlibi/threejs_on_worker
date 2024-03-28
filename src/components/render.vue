@@ -103,10 +103,14 @@ function handlerContentMenu(params: MouseEvent) {
   console.log('此功能不可用');
 
 }
+function handlerPorinterCancel(params:PointerEvent) {
+  console.log(params);
+  
+}
 </script>
 
 <template>
-  <canvas @pointermove="handlerPointerMove" @pointerup="handlerPointerUp" @pointerdown="handlerPointerUp"
+  <canvas @pointermove="handlerPointerMove" @pointercancel="handlerPorinterCancel" @pointerup="handlerPointerUp" @pointerdown="handlerPointerUp"
     @wheel.passive="handlerWheelEvent" @contextmenu="handlerContentMenu" class="w-full h-full block"
     ref="canvasRef"></canvas>
 </template>
