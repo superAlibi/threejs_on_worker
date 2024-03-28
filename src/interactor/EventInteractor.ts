@@ -1,72 +1,82 @@
 
-import { InteractorState, MOUSEBUTTONS, PointerTransformData, domPointerPositionToWEBGLPosition } from "./InteractorState"
-import { InitEventMessage, MouseMoveEventMessage, ResizeEventMessage, Settings } from "../renderer/types"
+import { InteractorState, PointerTransformData, domPointerPositionToWEBGLPosition } from "./InteractorState"
+import { Settings } from "../renderer/types"
+import { MOUSE } from "three"
+
 
 export class EventInteractor extends InteractorState {
   #resizeTimeoutId: number = 0
   constructor(public setting: Settings = new Settings()) {
     super()
-
-
   }
   initRender(offscreen: OffscreenCanvas, setting = this.setting) {
-    const messageBody: InitEventMessage = {
-      type: 'init',
+    this.width = offscreen.width
+    this.height = offscreen.height
+
+
+    this.renderWorker.postMessage('init', {
       canvas: offscreen,
       setting
-    }
-
-    this.renderWorker.postMessage(messageBody, [offscreen])
+    }, [offscreen])
   }
-  onMouseDown(button: MOUSEBUTTONS, metaData: PointerTransformData) {
+  private onMouseDown(button: MOUSE, metaData: PointerTransformData) {
     this.currenPointerDown = button;
     this.lastPointerDownPosition = domPointerPositionToWEBGLPosition(metaData)
   }
-  onMouseUp(e: PointerEvent) {
+  private onMouseUp(e: PointerEvent) {
     this.currenPointerDown = void 0;
-    if (e.button === MOUSEBUTTONS.RIGHT) {
+    if (e.button === MOUSE.RIGHT) {
       e.stopPropagation()
       e.preventDefault()
     }
   }
-  onMouseMove(metaData: PointerTransformData) {
-    return this.currenPointerPosition = domPointerPositionToWEBGLPosition(metaData)
+  private onMouseMove(metaData: PointerTransformData) {
+    const curp = domPointerPositionToWEBGLPosition(metaData)
+    if (this.currenPointerDown !== void 0) {
+      this.renderWorker.postMessage('rotate', {
+        x: 0,
+        y: 0
+      })
+    } else {
+      this.renderWorker.postMessage('pickup', curp)
+
+    }
   }
   resize(width: number, height: number) {
+    this.width = width
+    this.height = height
     if (this.#resizeTimeoutId) {
       clearTimeout(this.#resizeTimeoutId)
     }
     this.#resizeTimeoutId = window.setTimeout(() => {
-      const data: ResizeEventMessage = {
-        type: 'resize',
+      this.#resizeTimeoutId = 0
+      this.renderWorker.postMessage('resize', {
         width,
         height
-      }
-      this.#resizeTimeoutId = 0
-      this.renderWorker.postMessage(data)
+      })
     }, 200)
   }
-  point(e: PointerEvent, { width, height }: { width: number, height: number }) {
-    const metaData = { width, height, offsetX: e.offsetX, offsetY: e.offsetY }
+  point(e: PointerEvent) {
+    console.log(e);
+
+    if (!this.width || !this.height) {
+      throw new Error('width and height must be set before calling point')
+    }
+    const metaData = { width: this.width, height: this.height, offsetX: e.offsetX, offsetY: e.offsetY }
     switch (e.type) {
       case 'pointerup':
         this.onMouseUp(e)
         break;
       case 'pointermove':
         this.onMouseMove(metaData)
-        const data: MouseMoveEventMessage = {
-          type: 'pointerMove',
-          ...this.onMouseMove(metaData)
-        }
-        this.renderWorker.postMessage(data)
         break;
       case 'pointerdown':
         this.onMouseDown(e.button, metaData)
         break;
     }
   }
-  mouse(e: MouseEvent) {
-    console.log(e);
+  wheel(e: MouseEvent) {
+
   }
   keyboard(e: KeyboardEvent) {
     console.log(e);

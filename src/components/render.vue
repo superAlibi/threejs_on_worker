@@ -82,21 +82,21 @@ function handlerPointerMove(params: PointerEvent) {
     params.preventDefault()
     return
   }
-  dispatcher.point(params, { width: unref(width), height: unref(height) })
+  dispatcher.point(params)
 }
 /**
  * 指针按键回弹事件
  * @param params 
  */
 function handlerPointerUp(params: PointerEvent) {
-  dispatcher.point(params, { width: unref(width), height: unref(height) })
+  dispatcher.point(params)
 }
 function handlerWheelEvent(params: MouseEvent) {
   if (!props.eventSetting?.wheel) {
     params.preventDefault()
     return
   }
-  dispatcher.mouse(params)
+  dispatcher.wheel(params)
 }
 function handlerContentMenu(params: MouseEvent) {
   params.preventDefault()

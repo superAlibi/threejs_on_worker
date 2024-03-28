@@ -1,21 +1,18 @@
 
-export interface InitEventMessage { type: 'init', canvas: OffscreenCanvas, setting: Settings }
-export interface ResizeEventMessage { type: 'resize', width: number, height: number }
-export interface MouseMoveEventMessage { type: 'pointerMove', x: number, y: number }
-export interface SettingEventMessage { type: 'pointerMove', x: number, y: number }
-
+export interface PointerPosition {
+  x: number,
+  y: number
+}
 
 /**
- * 发送给工作者消息类型定义
+ * 
  */
-export type MassageEventAction = InitEventMessage | ResizeEventMessage | MouseMoveEventMessage
-
 export interface MessageEventMap {
   init: { canvas: OffscreenCanvas, setting: Settings },
   resize: { width: number, height: number },
-  pointerMove: { x: number, y: number },
-  settings: { setting: Settings },
-  rotate: { x: number, y: number }
+  pickup: PointerPosition,
+  setting: { setting: Settings },
+  rotate: PointerPosition
 }
 export interface SceneSetting {
   background: { type?: 'url' | 'hex', value?: string | number },
