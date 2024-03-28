@@ -1,5 +1,9 @@
 import {
+  Euler,
+  Quaternion,
   Vector2,
+  Vector3,
+
 } from 'three'
 
 import { MessageEventMap, } from './types';
@@ -19,6 +23,8 @@ class EventHandler extends EventHandlerState {
     this.composer.setSize(width, height)
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix()
+    this.dispatchEvent(new ResizeEvent({ width, height }))
+
   }
 
   /**
@@ -27,13 +33,31 @@ class EventHandler extends EventHandlerState {
    * @param y 
    */
   rotate(x: number, y: number) {
+    const euler = new Euler()
+    // euler.setFromQuaternion(this.camera.quaternion)
+    euler.x = -y * Math.PI / 180 / 2
+    euler.y = x * Math.PI / 180 / 2
+    console.log('eu',euler.y, euler.x);
+    
+    const nq = new Quaternion().setFromEuler(euler)
+    console.log('nq',nq.x, nq.y);
+    
+    // 角度
+    this.camera.quaternion.copy(nq)
+    this.camera.position.applyQuaternion(nq)
 
+    this.camera.lookAt(0, 0, 0)
+    this.dispatchEvent(new RotateEvent({ x, y }))
   }
   pickup(x: number, y: number) {
     this.rayCaster.setFromCamera(new Vector2(x, y), this.camera)
     const pickups = this.rayCaster.intersectObjects(this.scene.children)
     this.rayHitsSet = pickups
     this.outline.selectedObjects = pickups.map(i => i.object)
+
+    this.dispatchEvent(new PickupEvent({ x, y }))
+
+
   }
 }
 
@@ -50,10 +74,7 @@ class EventReceiver extends EventTarget {
   private handler?: EventHandler
 
   messageHanlder<K extends keyof MessageEventMap = keyof MessageEventMap>({ data }: MessageEvent<{ type: K, data: MessageEventMap[K] }>) {
-
     const { type, data: payload } = data
-    console.log(type, payload);
-
     switch (type) {
       case 'init':
         this.init(payload as MessageEventMap['init'])
@@ -68,6 +89,8 @@ class EventReceiver extends EventTarget {
         this.rotate(payload as MessageEventMap['rotate'])
         break;
       case "setting":
+        this.setting(payload as MessageEventMap['setting'])
+        break;
     }
 
   }
@@ -77,23 +100,22 @@ class EventReceiver extends EventTarget {
   }
   resize(t: MessageEventMap['resize']) {
     this.handler?.resize(t.width, t.height)
-    this.dispatchEvent(new ResizeEvent(t))
+
   }
   pickup(t: MessageEventMap['pickup']) {
     this.handler?.pickup(t.x, t.y)
-    this.dispatchEvent(new PickupEvent(t))
+
   }
   rotate(t: MessageEventMap['rotate']) {
     this.handler?.rotate(t.x, t.y)
-    this.dispatchEvent(new RotateEvent(t))
   }
   setting(t: MessageEventMap['setting']) {
-    this.handler?.setting(t.setting)
-    this.dispatchEvent(new SettingsEvent(t))
+    this.handler?.setting(t)
   }
 }
 
 const receiver = new EventReceiver()
+
 self.addEventListener("message", (e) => {
   receiver.messageHanlder(e)
 })

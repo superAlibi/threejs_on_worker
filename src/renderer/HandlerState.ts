@@ -13,6 +13,7 @@ import {
   BoxMatrix
 } from "R/models";
 import { CameraSetting, RenderSetting, SceneSetting, Settings } from './types.js';
+import { SettingsEvent } from './events/index.js';
 
 /**
  * 事件处理器状态
@@ -57,10 +58,11 @@ export class EventHandlerState extends EventTarget{
    * 更新设置
    * @param setting 
    */
-  setting(setting: Partial<Settings>) {
+  setting(setting: Settings) {
     this.sceneSetting(setting.scene)
     this.cameraSetting(setting.camera)
     this.renderSetting(setting.render)
+    this.dispatchEvent(new SettingsEvent(setting))
   }
   /**
    * 更新相机参数

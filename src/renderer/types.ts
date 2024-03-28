@@ -11,7 +11,7 @@ export interface MessageEventMap {
   init: { canvas: OffscreenCanvas, setting: Settings },
   resize: { width: number, height: number },
   pickup: PointerPosition,
-  setting: { setting: Settings },
+  setting: Settings,
   rotate: PointerPosition
 }
 export interface SceneSetting {

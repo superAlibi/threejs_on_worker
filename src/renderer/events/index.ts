@@ -1,5 +1,8 @@
 import { MessageEventMap } from "../types"
-
+/**
+ * 本文件用于表示事件类
+ * 任何对框架的操作都应该在此定义事件类，并通过事件类触发
+ */
 export class InitEvent extends CustomEvent<MessageEventMap['init']>{
   constructor(data: MessageEventMap['init']) {
     super('init', { detail: data })
@@ -23,6 +26,6 @@ export class RotateEvent extends CustomEvent<MessageEventMap['rotate']>{
 }
 export class SettingsEvent extends CustomEvent<MessageEventMap['setting']>{
   constructor(data: MessageEventMap['setting']) {
-    super('settings', { detail: data })
+    super('settings', {detail: data})
   }
 }
