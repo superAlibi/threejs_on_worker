@@ -13,6 +13,7 @@ export interface MessageEventMap {
   pickup: PointerPosition,
   setting: Settings,
   rotate: PointerPosition
+  keyboard:{type: string, key: string}
 }
 export interface SceneSetting {
   background: { type?: 'url' | 'hex', value?: string | number },

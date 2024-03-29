@@ -14,7 +14,18 @@ import {
 	OrthographicCamera,
 	Matrix4
 } from 'three';
+interface WheelEventMetaBase{
+	clientX: number,
+	clientY: number,
+	deltaY: number,
+}
+interface WheelEventMetaData extends WheelEventMetaBase{
 
+	
+	deltaMode: number,
+	ctrlKey: boolean
+
+}
 // OrbitControls performs orbiting, dollying (zooming), and panning.
 // Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
 //
@@ -46,12 +57,11 @@ class OrbitControls extends EventDispatcher<{
 	start: any
 	end: any
 }> {
+
 	/**
 	 *			以下是公共参数,相当于设置行为状态
 	 */
-	object: PerspectiveCamera | OrthographicCamera
 
-	domElement: HTMLCanvasElement
 	// Set to false to disable this control
 	enabled: boolean = true
 	// "target" sets the location of focus, where the object orbits around
@@ -106,8 +116,7 @@ class OrbitControls extends EventDispatcher<{
 	target0: Vector3 = new Vector3();
 	position0: Vector3
 	zoom0: number
-	// the target DOM element for key events
-	_domElementKeyEvents: HTMLElement | null = null
+
 
 	// public methods
 	getPolarAngle() {
@@ -129,12 +138,7 @@ class OrbitControls extends EventDispatcher<{
 
 	};
 
-	listenToKeyEvents(domElement: HTMLElement) {
 
-		domElement.addEventListener('keydown', this.#onKeyDown);
-		this._domElementKeyEvents = domElement;
-
-	};
 
 	saveState() {
 
@@ -145,12 +149,6 @@ class OrbitControls extends EventDispatcher<{
 	};
 
 
-	stopListenToKeyEvents() {
-
-		this._domElementKeyEvents?.removeEventListener('keydown', this.#onKeyDown);
-		this._domElementKeyEvents = null;
-
-	};
 
 	reset = () => {
 
@@ -167,33 +165,134 @@ class OrbitControls extends EventDispatcher<{
 
 	update: (this: OrbitControls) => void;
 
-	dispose = () => {
+	/**
+	 * 鼠标滚动处理函数
+	 * @param event 
+	 * @returns 
+	 */
+	mouseWheelHandler = (event: WheelEvent) => {
 
-		this.domElement.removeEventListener('contextmenu', this.#onContextMenu);
+		if (!this.enabled || !this.enableZoom || this.#state !== STATE.NONE) return;
 
-		this.domElement.removeEventListener('pointerdown', this.#onPointerDown);
-		this.domElement.removeEventListener('pointercancel', this.#onPointerUp);
-		this.domElement.removeEventListener('wheel', this.#onMouseWheel);
 
-		this.domElement.removeEventListener('pointermove', this.#onPointerMove);
-		this.domElement.removeEventListener('pointerup', this.#onPointerUp);
+		this.dispatchEvent(_startEvent);
 
-		const document = this.domElement.getRootNode(); // offscreen canvas compatibility
+		this.#handleMouseWheel(this.#customWheelEvent(event));
 
-		document.removeEventListener('keydown', this.#interceptControlDown, { capture: true });
+		this.dispatchEvent(_endEvent);
 
-		if (this._domElementKeyEvents !== null) {
+	}
+	/**
+		 * 鼠标右击处理
+		 * @param event 
+		 * @returns 
+		 */
+	contextMenu = (event: MouseEvent) => {
 
-			this._domElementKeyEvents.removeEventListener('keydown', this.#onKeyDown);
-			this._domElementKeyEvents = null;
+		if (this.enabled === false) return;
+
+		event.preventDefault();
+
+	}
+
+	/**
+	 * 键盘处理事件处理
+	 * 主要是外部dm使用
+	 * 
+	 * @param event 
+	 */
+	keyDownHandler = (event: KeyboardEvent) => {
+
+		if (this.enabled === false || this.enablePan === false) return;
+
+		this.#handleKeyDown(event);
+
+	}
+	/**
+	 * 
+	 *   事件处理器部分,监听状态和重置状态
+	 * 
+	 * 
+	 */
+	/**
+	 * 鼠标开始
+	 * @param event 
+	 * @returns 
+	 */
+	pointerDownHandler = (event: PointerEvent) => {
+
+		if (this.enabled === false) return;
+
+		//
+
+		if (this.#isTrackingPointer(event)) return;
+
+		//
+
+		this.#addPointer(event.pointerId);
+
+		if (event.pointerType === 'touch') {
+
+			this.#onTouchStart(event);
+
+		} else {
+
+			this.#onMouseDown(event);
 
 		}
 
-		//this.dispatchEvent( { type: 'dispose' } ); // should this be added here?
+	}
+	pointerMoveHandler = (event: PointerEvent) => {
+
+		if (this.enabled === false) return;
+
+		if (event.pointerType === 'touch') {
+
+			this.#onTouchMove(event);
+
+		} else {
+
+			this.#onMouseMove(event);
+
+		}
+
+	}
+	/**
+	 * 指针弹出
+	 * @param event 
+	 */
+	pointerUpHandler = (event: PointerEvent) => {
+
+		this.#removePointer(event.pointerId);
+
+		switch (this.#pointers.length) {
+
+			case 0:
+
+				this.dispatchEvent(_endEvent);
+				this.#state = STATE.NONE;
+
+				break;
+
+			case 1:
+
+				const pointerId = this.#pointers[0];
+				const position = this.#pointerPositions[pointerId];
+
+				// minimal placeholder event - allows state correction on pointer-up
+
+				this.#onTouchStart({ pointerId: pointerId, pageX: position.x, pageY: position.y } as PointerEvent);
+
+				break;
+
+		}
+
+	}
+	dispose = () => {
+
+		this.dispatchEvent({ type: 'dispose' }); // should this be added here?
 
 	};
-
-
 	#state: number = STATE.NONE;
 	// 内部使用的方法
 	// current position in spherical coordinates
@@ -245,11 +344,11 @@ class OrbitControls extends EventDispatcher<{
 
 		this.#performCursorZoom = true;
 
-		const rect = this.domElement.getBoundingClientRect();
-		const dx = x - rect.left;
-		const dy = y - rect.top;
-		const w = rect.width;
-		const h = rect.height;
+
+		const dx = x - this.rect.left;
+		const dy = y - this.rect.top;
+		const w = this.rect.width;
+		const h = this.rect.height;
 
 		this.#mouse.x = (dx / w) * 2 - 1;
 		this.#mouse.y = - (dy / h) * 2 + 1;
@@ -330,8 +429,7 @@ class OrbitControls extends EventDispatcher<{
 	 * 
 	 * @param event 
 	 */
-
-	#handleMouseWheel = (event: WheelEvent) => {
+	#handleMouseWheel = (event: WheelEventMetaBase) => {
 
 		this.#updateZoomParameters(event.clientX, event.clientY);
 
@@ -437,11 +535,10 @@ class OrbitControls extends EventDispatcher<{
 
 		this.#rotateDelta.subVectors(this.#rotateEnd, this.#rotateStart).multiplyScalar(this.rotateSpeed);
 
-		const element = this.domElement;
 
-		this.#rotateLeft(2 * Math.PI * this.#rotateDelta.x / element.clientHeight); // yes, height
+		this.#rotateLeft(2 * Math.PI * this.#rotateDelta.x / this.clientHeight); // yes, height
 
-		this.#rotateUp(2 * Math.PI * this.#rotateDelta.y / element.clientHeight);
+		this.#rotateUp(2 * Math.PI * this.#rotateDelta.y / this.clientHeight);
 
 		this.#rotateStart.copy(this.#rotateEnd);
 
@@ -533,98 +630,7 @@ class OrbitControls extends EventDispatcher<{
 		return this.#pointerPositions[pointerId];
 
 	}
-	/**
-	 * 
-	 *   事件处理器部分,监听状态和重置状态
-	 * 
-	 * 
-	 */
-	/**
-	 * 鼠标开始
-	 * @param event 
-	 * @returns 
-	 */
-	#onPointerDown = (event: PointerEvent) => {
 
-		if (this.enabled === false) return;
-
-		if (!this.#pointers.length) {
-
-			this.domElement.setPointerCapture(event.pointerId);
-
-			this.domElement.addEventListener('pointermove', this.#onPointerMove);
-			this.domElement.addEventListener('pointerup', this.#onPointerUp);
-
-		}
-
-		//
-
-		if (this.#isTrackingPointer(event)) return;
-
-		//
-
-		this.#addPointer(event);
-
-		if (event.pointerType === 'touch') {
-
-			this.#onTouchStart(event);
-
-		} else {
-
-			this.#onMouseDown(event);
-
-		}
-
-	}
-	#onPointerMove = (event: PointerEvent) => {
-
-		if (this.enabled === false) return;
-
-		if (event.pointerType === 'touch') {
-
-			this.#onTouchMove(event);
-
-		} else {
-
-			this.#onMouseMove(event);
-
-		}
-
-	}
-
-	#onPointerUp = (event: PointerEvent) => {
-
-		this.#removePointer(event);
-
-		switch (this.#pointers.length) {
-
-			case 0:
-
-				this.domElement.releasePointerCapture(event.pointerId);
-
-				this.domElement.removeEventListener('pointermove', this.#onPointerMove);
-				this.domElement.removeEventListener('pointerup', this.#onPointerUp);
-
-				this.dispatchEvent(_endEvent);
-
-				this.#state = STATE.NONE;
-
-				break;
-
-			case 1:
-
-				const pointerId = this.#pointers[0];
-				const position = this.#pointerPositions[pointerId];
-
-				// minimal placeholder event - allows state correction on pointer-up
-
-				this.#onTouchStart({ pointerId: pointerId, pageX: position.x, pageY: position.y } as PointerEvent);
-
-				break;
-
-		}
-
-	}
 	#handleMouseDownRotate = (event: PointerEvent) => {
 
 		this.#rotateStart.set(event.clientX, event.clientY);
@@ -651,11 +657,10 @@ class OrbitControls extends EventDispatcher<{
 
 		this.#rotateDelta.subVectors(this.#rotateEnd, this.#rotateStart).multiplyScalar(this.rotateSpeed);
 
-		const element = this.domElement;
 
-		this.#rotateLeft(2 * Math.PI * this.#rotateDelta.x / element.clientHeight); // yes, height
+		this.#rotateLeft(2 * Math.PI * this.#rotateDelta.x / this.clientHeight); // yes, height
 
-		this.#rotateUp(2 * Math.PI * this.#rotateDelta.y / element.clientHeight);
+		this.#rotateUp(2 * Math.PI * this.#rotateDelta.y / this.clientHeight);
 
 		this.#rotateStart.copy(this.#rotateEnd);
 
@@ -838,21 +843,9 @@ class OrbitControls extends EventDispatcher<{
 	}
 
 
-	#onMouseWheel = (event: WheelEvent) => {
 
-		if (this.enabled === false || this.enableZoom === false || this.#state !== STATE.NONE) return;
 
-		event.preventDefault();
-
-		this.dispatchEvent(_startEvent);
-
-		this.#handleMouseWheel(this.#customWheelEvent(event));
-
-		this.dispatchEvent(_endEvent);
-
-	}
-
-	#customWheelEvent = (event: WheelEvent) => {
+	#customWheelEvent = (event: WheelEventMetaData) => {
 
 		const mode = event.deltaMode;
 
@@ -882,39 +875,11 @@ class OrbitControls extends EventDispatcher<{
 
 		}
 
-		return newEvent as WheelEvent;
+		return newEvent;
 
 	}
 
-	#interceptControlDown = (event: KeyboardEvent) => {
 
-		if (event.key === 'Control') {
-
-			this.#controlActive = true;
-
-
-			const document = this.domElement.getRootNode(); // offscreen canvas compatibility
-
-			document.addEventListener('keyup', this.#interceptControlUp, { passive: true, capture: true });
-
-		}
-
-	}
-
-	#interceptControlUp = (event: KeyboardEvent) => {
-
-		if (event.key === 'Control') {
-
-			this.#controlActive = false;
-
-
-			const document = this.domElement.getRootNode(); // offscreen canvas compatibility
-
-			document.removeEventListener('keyup', this.#interceptControlUp, { passive: true, capture: true });
-
-		}
-
-	}
 
 
 
@@ -1057,19 +1022,19 @@ class OrbitControls extends EventDispatcher<{
 	}
 
 
-	#addPointer = (event: PointerEvent) => {
+	#addPointer = (pointerId: number) => {
 
-		this.#pointers.push(event.pointerId);
+		this.#pointers.push(pointerId);
 
 	}
 
-	#removePointer = (event: PointerEvent) => {
+	#removePointer = (pointerId: number) => {
 
-		delete this.#pointerPositions[event.pointerId];
+		delete this.#pointerPositions[pointerId];
 
 		for (let i = 0; i < this.#pointers.length; i++) {
 
-			if (this.#pointers[i] == event.pointerId) {
+			if (this.#pointers[i] == pointerId) {
 
 				this.#pointers.splice(i, 1);
 				return;
@@ -1079,30 +1044,7 @@ class OrbitControls extends EventDispatcher<{
 		}
 
 	}
-	/**
-	 * 鼠标右击处理
-	 * @param event 
-	 * @returns 
-	 */
-	#onContextMenu(event: MouseEvent) {
 
-		if (this.enabled === false) return;
-
-		event.preventDefault();
-
-	}
-
-	/**
-	 * 键盘处理事件处理
-	 * @param event 
-	 */
-	#onKeyDown = (event: KeyboardEvent) => {
-
-		if (this.enabled === false || this.enablePan === false) return;
-
-		this.#handleKeyDown(event);
-
-	}
 
 	#handleKeyDown = (event: KeyboardEvent) => {
 
@@ -1114,7 +1056,7 @@ class OrbitControls extends EventDispatcher<{
 
 				if (event.ctrlKey || event.metaKey || event.shiftKey) {
 
-					this.#rotateUp(2 * Math.PI * this.rotateSpeed / this.domElement.clientHeight);
+					this.#rotateUp(2 * Math.PI * this.rotateSpeed / this.clientHeight);
 
 				} else {
 
@@ -1129,7 +1071,7 @@ class OrbitControls extends EventDispatcher<{
 
 				if (event.ctrlKey || event.metaKey || event.shiftKey) {
 
-					this.#rotateUp(- 2 * Math.PI * this.rotateSpeed / this.domElement.clientHeight);
+					this.#rotateUp(- 2 * Math.PI * this.rotateSpeed / this.clientHeight);
 
 				} else {
 
@@ -1144,7 +1086,7 @@ class OrbitControls extends EventDispatcher<{
 
 				if (event.ctrlKey || event.metaKey || event.shiftKey) {
 
-					this.#rotateLeft(2 * Math.PI * this.rotateSpeed / this.domElement.clientHeight);
+					this.#rotateLeft(2 * Math.PI * this.rotateSpeed / this.clientHeight);
 
 				} else {
 
@@ -1159,7 +1101,7 @@ class OrbitControls extends EventDispatcher<{
 
 				if (event.ctrlKey || event.metaKey || event.shiftKey) {
 
-					this.#rotateLeft(- 2 * Math.PI * this.rotateSpeed / this.domElement.clientHeight);
+					this.#rotateLeft(- 2 * Math.PI * this.rotateSpeed / this.clientHeight);
 
 				} else {
 
@@ -1194,17 +1136,14 @@ class OrbitControls extends EventDispatcher<{
 		this.#sphericalDelta.phi -= angle;
 
 	}
-	// get polarAngle() {
-	// 	return this.#spherical.phi
-	// }
+	get polarAngle() {
+		return this.#spherical.phi
+	}
 	// 以下是状态参数
-	constructor(object: PerspectiveCamera | OrthographicCamera, domElement: HTMLCanvasElement) {
+	constructor(public object: PerspectiveCamera | OrthographicCamera, public rect: DOMRect, public clientHeight: number, public clientWidth: number) {
 
 		super();
 
-		this.object = object;
-		this.domElement = domElement;
-		this.domElement.style.touchAction = 'none'; // disable touch scroll
 
 
 		// for reset
@@ -1222,7 +1161,7 @@ class OrbitControls extends EventDispatcher<{
 
 
 		// this method is exposed, but perhaps it would be better if we can make it private...
-		this.update =  (()=> {
+		this.update = (() => {
 
 			const offset = new Vector3();
 
@@ -1236,7 +1175,7 @@ class OrbitControls extends EventDispatcher<{
 
 			const twoPI = 2 * Math.PI;
 
-			return (deltaTime: number = 0)=> {
+			return (deltaTime: number = 0) => {
 
 				const position = this.object.position;
 
@@ -1475,9 +1414,6 @@ class OrbitControls extends EventDispatcher<{
 
 
 
-
-		const scope = this;
-
 		this.#state = STATE.NONE;
 		this.#panLeft = (() => {
 
@@ -1526,7 +1462,6 @@ class OrbitControls extends EventDispatcher<{
 
 			return (deltaX, deltaY) => {
 
-				const element = this.domElement;
 
 				if (this.object instanceof PerspectiveCamera) {
 
@@ -1539,14 +1474,14 @@ class OrbitControls extends EventDispatcher<{
 					targetDistance *= Math.tan((this.object.fov / 2) * Math.PI / 180.0);
 
 					// we use only clientHeight here so aspect ratio does not distort speed
-					this.#panLeft(2 * deltaX * targetDistance / element.clientHeight, this.object.matrix);
-					this.#panUp(2 * deltaY * targetDistance / element.clientHeight, this.object.matrix);
+					this.#panLeft(2 * deltaX * targetDistance / this.clientHeight, this.object.matrix);
+					this.#panUp(2 * deltaY * targetDistance / this.clientHeight, this.object.matrix);
 
 				} else if (this.object instanceof OrthographicCamera) {
 
 					// orthographic
-					this.#panLeft(deltaX * (this.object.right - this.object.left) / this.object.zoom / element.clientWidth, this.object.matrix);
-					this.#panUp(deltaY * (this.object.top - this.object.bottom) / this.object.zoom / element.clientHeight, this.object.matrix);
+					this.#panLeft(deltaX * (this.object.right - this.object.left) / this.object.zoom / this.clientWidth, this.object.matrix);
+					this.#panUp(deltaY * (this.object.top - this.object.bottom) / this.object.zoom / this.clientHeight, this.object.matrix);
 
 				} else {
 
@@ -1561,23 +1496,7 @@ class OrbitControls extends EventDispatcher<{
 		})();
 
 
-
-
-
-
-
-		this.domElement.addEventListener('contextmenu', this.#onContextMenu);
-
-		this.domElement.addEventListener('pointerdown', this.#onPointerDown);
-		this.domElement.addEventListener('pointercancel', this.#onPointerUp);
-		this.domElement.addEventListener('wheel', this.#onMouseWheel, { passive: false });
-
-		const document = this.domElement.getRootNode(); // offscreen canvas compatibility
-
-		document.addEventListener('keydown', this.#interceptControlDown, { passive: true, capture: true });
-
 		// force an update at start
-
 		this.update();
 
 	}
