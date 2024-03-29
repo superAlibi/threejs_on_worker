@@ -93,3 +93,16 @@ export * from './math/MeshSurfaceSampler.js';
 export * from './math/OBB.js';
 export * from './math/Octree.js';
 export * from './math/SimplexNoise.js';
+
+
+
+// 控制器导出
+export * from './controls/ArcballControls.js';
+export * from './controls/DragControls.js';
+export * from './controls/FirstPersonControls.js';
+export * from './controls/FlyControls.js';
+export * from './controls/MapControls.js';
+export * from './controls/OrbitControls.ts';
+export * from './controls/PointerLockControls.js';
+export * from './controls/TrackballControls.js';
+export * from './controls/TransformControls.js';
