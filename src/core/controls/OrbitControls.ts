@@ -20,11 +20,8 @@ interface WheelEventMetaBase{
 	deltaY: number,
 }
 interface WheelEventMetaData extends WheelEventMetaBase{
-
-	
 	deltaMode: number,
 	ctrlKey: boolean
-
 }
 // OrbitControls performs orbiting, dollying (zooming), and panning.
 // Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
@@ -125,7 +122,7 @@ class OrbitControls extends EventDispatcher<{
 
 	};
 
-	getAzimuthalAngle() {
+	get azimuthalAngle() {
 
 		return this.#spherical.theta;
 
@@ -182,18 +179,6 @@ class OrbitControls extends EventDispatcher<{
 		this.dispatchEvent(_endEvent);
 
 	}
-	/**
-		 * 鼠标右击处理
-		 * @param event 
-		 * @returns 
-		 */
-	contextMenu = (event: MouseEvent) => {
-
-		if (this.enabled === false) return;
-
-		event.preventDefault();
-
-	}
 
 	/**
 	 * 键盘处理事件处理
@@ -203,7 +188,7 @@ class OrbitControls extends EventDispatcher<{
 	 */
 	keyDownHandler = (event: KeyboardEvent) => {
 
-		if (this.enabled === false || this.enablePan === false) return;
+		if (!this.enabled|| !this.enablePan) return;
 
 		this.#handleKeyDown(event);
 
@@ -294,7 +279,6 @@ class OrbitControls extends EventDispatcher<{
 
 	};
 	#state: number = STATE.NONE;
-	// 内部使用的方法
 	// current position in spherical coordinates
 	#spherical: Spherical = new Spherical()
 	#sphericalDelta: Spherical = new Spherical()

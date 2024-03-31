@@ -5,21 +5,21 @@ import {
   Object3D, Object3DEventMap, Vector2,
   Color, DirectionalLight, HemisphereLight,
 } from 'three'
-import { EffectComposer, OutlinePass, RenderPass } from './Addons.js'
+import { EffectComposer, OutlinePass, RenderPass } from '../Addons.js'
 
 
 
 import {
   BoxMatrix
 } from "R/models";
-import { CameraSetting, RenderSetting, SceneSetting, Settings } from './types.js';
-import { SettingsEvent } from './events/index.js';
+import { CameraSetting, RenderSetting, SceneSetting, Settings } from '../types.js';
+
 
 /**
  * 事件处理器状态
  * 内部的坐标系必须是场景坐标系,不能是任何dom坐标系
  */
-export class EventHandlerState extends EventTarget{
+export class Renderer {
   public composer: EffectComposer;
   public rayCaster: Raycaster
   public renderer: WebGLRenderer
@@ -30,7 +30,7 @@ export class EventHandlerState extends EventTarget{
   public camera: PerspectiveCamera
   #animalId: number = 0
   constructor(public canvas: OffscreenCanvas, setting: Settings) {
-    super()
+    // super()
     const { width, height } = canvas
     this.scene = new Scene()
     this.sceneSetting(setting.scene)
@@ -62,7 +62,6 @@ export class EventHandlerState extends EventTarget{
     this.sceneSetting(setting.scene)
     this.cameraSetting(setting.camera)
     this.renderSetting(setting.render)
-    this.dispatchEvent(new SettingsEvent(setting))
   }
   /**
    * 更新相机参数

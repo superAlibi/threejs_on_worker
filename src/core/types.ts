@@ -8,12 +8,12 @@ export interface PointerPosition {
  * 
  */
 export interface MessageEventMap {
-  init: { canvas: OffscreenCanvas, setting: Settings },
+  init: { canvas: OffscreenCanvas, setting?: Settings },
   resize: { width: number, height: number },
-  pickup: PointerPosition,
-  setting: Settings,
-  rotate: PointerPosition
-  keyboard:{type: string, key: string}
+  pointer:any,
+  touch:any,
+  keyboard:any,
+  setting:any
 }
 export interface SceneSetting {
   background: { type?: 'url' | 'hex', value?: string | number },

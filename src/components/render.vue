@@ -2,7 +2,7 @@
 import { onMounted, ref, unref, onBeforeUnmount, watch } from 'vue'
 import State from 'three/examples/jsm/libs/stats.module.js'
 import { GUI } from "dat.gui";
-import { EventInteractor } from 'R/interactor';
+import { EventInteractor } from 'R/helper';
 import { EventSetting, GUISetting } from './types'
 import { useElementSize, useEventListener } from '@vueuse/core'
 interface RenderProp {
@@ -52,6 +52,7 @@ onMounted(() => {
   canvas.width = unref(width)
   canvas.height = unref(height)
   const offscreen = canvas.transferControlToOffscreen()
+  
   dispatcher.initRender(offscreen)
 
   if (props.stateEnable) {
@@ -82,14 +83,14 @@ function handlerPointerMove(params: PointerEvent) {
     params.preventDefault()
     return
   }
-  dispatcher.point(params)
+  dispatcher.onMouseMove(params)
 }
 /**
  * 指针按键回弹事件
  * @param params 
  */
-function handlerPointerUp(params: PointerEvent) {
-  dispatcher.point(params)
+function handlerPointerDown(params: PointerEvent) {
+  dispatcher.onMouseDown(params)
 }
 function handlerWheelEvent(params: MouseEvent) {
   if (!props.eventSetting?.wheel) {
@@ -104,13 +105,13 @@ function handlerContentMenu(params: MouseEvent) {
 
 }
 function handlerPorinterCancel(params:PointerEvent) {
-  console.log(params);
+  dispatcher.onMouseUp(params)
   
 }
 </script>
 
 <template>
-  <canvas @pointermove="handlerPointerMove" @pointercancel="handlerPorinterCancel" @pointerup="handlerPointerUp" @pointerdown="handlerPointerUp"
+  <canvas @pointermove="handlerPointerMove" @pointercancel="handlerPorinterCancel" @pointerup="handlerPorinterCancel" @pointerdown="handlerPointerDown"
     @wheel.passive="handlerWheelEvent" @contextmenu="handlerContentMenu" class="w-full h-full block"
     ref="canvasRef"></canvas>
 </template>
