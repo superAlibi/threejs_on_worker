@@ -14,7 +14,7 @@ import {
 	OrthographicCamera,
 	Matrix4
 } from 'three';
-import { PointerEventInfo,KeyBoardEventInfo,WheelEventInfo } from '../types';
+import { PointerEventInfo,KeyBoardEventInfo,WheelEventInfo } from '../types.ts';
 interface WheelEventMetaBase {
 	clientX: number,
 	clientY: number,
