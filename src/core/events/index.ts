@@ -1,5 +1,5 @@
-import { Renderer } from "../states/renderer"
-import { UIState } from "../states/ui"
+import { Renderer } from "../states/renderer.ts"
+import { UIState } from "../states/ui.ts"
 
 class BaseEvent extends CustomEvent<UIState> {
   constructor(type: string,public renderer: Renderer,detail?:UIState) {
