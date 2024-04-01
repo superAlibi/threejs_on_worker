@@ -31,9 +31,8 @@ function getPointerEventInfo(e: PointerEvent): PointerEventInfo {
  */
 class RenderWorker<T extends MessageEventMap = MessageEventMap>  {
 
-  worker: Worker=new Worker(new URL('worker.ts', import.meta.url),{type:'module'})
+  worker: Worker=new Worker(new URL('../core/EventHandler.ts', import.meta.url),{type:'module'})
   constructor() {
-    // this.worker = new InnterWorker()
     this.worker.addEventListener('message', this.workerOnMessage)
     this.worker.addEventListener('error', (e) => {
       alert( e.message)
