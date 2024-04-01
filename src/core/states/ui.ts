@@ -1,6 +1,6 @@
-import { PointerPosition } from 'R/core/types';
+import { PointerPosition } from '../../core/types.ts';
 import { Vector2 } from 'three';
-import { EventMap } from '../events';
+import { EventMap } from '../events/index.ts';
 
 export interface PointerTransformData {
   width: number, height: number,
