@@ -26,3 +26,9 @@ export class ChangeEvent extends BaseEvent {
     super('change', data,detail)
   }
 }
+
+export interface EventMap extends Omit<GlobalEventHandlersEventMap,'resize'>, WindowEventHandlersEventMap {
+  init: InitEvent
+  resize: ResizeEvent
+  change: ChangeEvent
+}

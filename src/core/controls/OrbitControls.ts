@@ -14,12 +14,13 @@ import {
 	OrthographicCamera,
 	Matrix4
 } from 'three';
-interface WheelEventMetaBase{
+import { PointerEventInfo,KeyBoardEventInfo,WheelEventInfo } from '../types';
+interface WheelEventMetaBase {
 	clientX: number,
 	clientY: number,
 	deltaY: number,
 }
-interface WheelEventMetaData extends WheelEventMetaBase{
+interface WheelEventMetaData extends WheelEventMetaBase {
 	deltaMode: number,
 	ctrlKey: boolean
 }
@@ -167,10 +168,9 @@ class OrbitControls extends EventDispatcher<{
 	 * @param event 
 	 * @returns 
 	 */
-	mouseWheelHandler = (event: WheelEvent) => {
+	mouseWheelHandler = (event: WheelEventInfo) => {
 
 		if (!this.enabled || !this.enableZoom || this.#state !== STATE.NONE) return;
-
 
 		this.dispatchEvent(_startEvent);
 
@@ -186,9 +186,9 @@ class OrbitControls extends EventDispatcher<{
 	 * 
 	 * @param event 
 	 */
-	keyDownHandler = (event: KeyboardEvent) => {
+	keyDownHandler = (event: 		KeyBoardEventInfo) => {
 
-		if (!this.enabled|| !this.enablePan) return;
+		if (!this.enabled || !this.enablePan) return;
 
 		this.#handleKeyDown(event);
 
@@ -204,7 +204,7 @@ class OrbitControls extends EventDispatcher<{
 	 * @param event 
 	 * @returns 
 	 */
-	pointerDownHandler = (event: PointerEvent) => {
+	pointerDownHandler = (event: PointerEventInfo) => {
 
 		if (this.enabled === false) return;
 
@@ -227,7 +227,7 @@ class OrbitControls extends EventDispatcher<{
 		}
 
 	}
-	pointerMoveHandler = (event: PointerEvent) => {
+	pointerMoveHandler = (event: PointerEventInfo) => {
 
 		if (this.enabled === false) return;
 
@@ -246,7 +246,7 @@ class OrbitControls extends EventDispatcher<{
 	 * 指针弹出
 	 * @param event 
 	 */
-	pointerUpHandler = (event: PointerEvent) => {
+	pointerUpHandler = (event: PointerEventInfo) => {
 
 		this.#removePointer(event.pointerId);
 
@@ -266,7 +266,7 @@ class OrbitControls extends EventDispatcher<{
 
 				// minimal placeholder event - allows state correction on pointer-up
 
-				this.#onTouchStart({ pointerId: pointerId, pageX: position.x, pageY: position.y } as PointerEvent);
+				this.#onTouchStart({ pointerId: pointerId, offsetX: position.x, offsetY: position.y } as PointerEventInfo);
 
 				break;
 
@@ -318,7 +318,7 @@ class OrbitControls extends EventDispatcher<{
 	#panUp: (distance: number, objectMatrix: Matrix4) => void
 	// deltaX and deltaY are in pixels; right and down are positive
 	#pan: (deltax: number, deltay: number) => void;
-	#updateZoomParameters(x: number, y: number) {
+	#updateZoomParameters(clientX: number, clientY: number) {
 
 		if (!this.zoomToCursor) {
 
@@ -329,8 +329,8 @@ class OrbitControls extends EventDispatcher<{
 		this.#performCursorZoom = true;
 
 
-		const dx = x - this.rect.left;
-		const dy = y - this.rect.top;
+		const dx = clientX - this.rect.left;
+		const dy = clientY - this.rect.top;
 		const w = this.rect.width;
 		const h = this.rect.height;
 
@@ -433,18 +433,18 @@ class OrbitControls extends EventDispatcher<{
 
 
 
-	#handleTouchStartRotate = (event: PointerEvent) => {
+	#handleTouchStartRotate = (event: PointerEventInfo) => {
 
 		if (this.#pointers.length === 1) {
 
-			this.#rotateStart.set(event.pageX, event.pageY);
+			this.#rotateStart.set(event.offsetX, event.offsetY);
 
 		} else {
 
 			const position = this.#getSecondPointerPosition(event);
 
-			const x = 0.5 * (event.pageX + position.x);
-			const y = 0.5 * (event.pageY + position.y);
+			const x = 0.5 * (event.offsetX + position.x);
+			const y = 0.5 * (event.offsetY + position.y);
 
 			this.#rotateStart.set(x, y);
 
@@ -452,18 +452,18 @@ class OrbitControls extends EventDispatcher<{
 
 	}
 
-	#handleTouchStartPan = (event: PointerEvent) => {
+	#handleTouchStartPan = (event: PointerEventInfo) => {
 
 		if (this.#pointers.length === 1) {
 
-			this.#panStart.set(event.pageX, event.pageY);
+			this.#panStart.set(event.offsetX, event.offsetY);
 
 		} else {
 
 			const position = this.#getSecondPointerPosition(event);
 
-			const x = 0.5 * (event.pageX + position.x);
-			const y = 0.5 * (event.pageY + position.y);
+			const x = 0.5 * (event.offsetX + position.x);
+			const y = 0.5 * (event.offsetY + position.y);
 
 			this.#panStart.set(x, y);
 
@@ -471,12 +471,12 @@ class OrbitControls extends EventDispatcher<{
 
 	}
 
-	#handleTouchStartDolly = (event: PointerEvent) => {
+	#handleTouchStartDolly = (event: PointerEventInfo) => {
 
 		const position = this.#getSecondPointerPosition(event);
 
-		const dx = event.pageX - position.x;
-		const dy = event.pageY - position.y;
+		const dx = event.offsetX - position.x;
+		const dy = event.offsetY - position.y;
 
 		const distance = Math.sqrt(dx * dx + dy * dy);
 
@@ -484,7 +484,7 @@ class OrbitControls extends EventDispatcher<{
 
 	}
 
-	#handleTouchStartDollyPan = (event: PointerEvent) => {
+	#handleTouchStartDollyPan = (event: PointerEventInfo) => {
 
 		if (this.enableZoom) this.#handleTouchStartDolly(event);
 
@@ -492,7 +492,7 @@ class OrbitControls extends EventDispatcher<{
 
 	}
 
-	#handleTouchStartDollyRotate = (event: PointerEvent) => {
+	#handleTouchStartDollyRotate = (event: PointerEventInfo) => {
 
 		if (this.enableZoom) this.#handleTouchStartDolly(event);
 
@@ -500,18 +500,18 @@ class OrbitControls extends EventDispatcher<{
 
 	}
 
-	#handleTouchMoveRotate = (event: PointerEvent) => {
+	#handleTouchMoveRotate = (event: PointerEventInfo) => {
 
 		if (this.#pointers.length == 1) {
 
-			this.#rotateEnd.set(event.pageX, event.pageY);
+			this.#rotateEnd.set(event.offsetX, event.offsetY);
 
 		} else {
 
 			const position = this.#getSecondPointerPosition(event);
 
-			const x = 0.5 * (event.pageX + position.x);
-			const y = 0.5 * (event.pageY + position.y);
+			const x = 0.5 * (event.offsetX + position.x);
+			const y = 0.5 * (event.offsetY + position.y);
 
 			this.#rotateEnd.set(x, y);
 
@@ -528,18 +528,18 @@ class OrbitControls extends EventDispatcher<{
 
 	}
 
-	#handleTouchMovePan = (event: PointerEvent) => {
+	#handleTouchMovePan = (event: PointerEventInfo) => {
 
 		if (this.#pointers.length === 1) {
 
-			this.#panEnd.set(event.pageX, event.pageY);
+			this.#panEnd.set(event.offsetX, event.offsetY);
 
 		} else {
 
 			const position = this.#getSecondPointerPosition(event);
 
-			const x = 0.5 * (event.pageX + position.x);
-			const y = 0.5 * (event.pageY + position.y);
+			const x = 0.5 * (event.offsetX + position.x);
+			const y = 0.5 * (event.offsetY + position.y);
 
 			this.#panEnd.set(x, y);
 
@@ -553,12 +553,12 @@ class OrbitControls extends EventDispatcher<{
 
 	}
 
-	#handleTouchMoveDolly = (event: PointerEvent) => {
+	#handleTouchMoveDolly = (event: PointerEventInfo) => {
 
 		const position = this.#getSecondPointerPosition(event);
 
-		const dx = event.pageX - position.x;
-		const dy = event.pageY - position.y;
+		const dx = event.offsetX - position.x;
+		const dy = event.offsetY - position.y;
 
 		const distance = Math.sqrt(dx * dx + dy * dy);
 
@@ -570,14 +570,14 @@ class OrbitControls extends EventDispatcher<{
 
 		this.#dollyStart.copy(this.#dollyEnd);
 
-		const centerX = (event.pageX + position.x) * 0.5;
-		const centerY = (event.pageY + position.y) * 0.5;
+		const centerX = (event.offsetX + position.x) * 0.5;
+		const centerY = (event.offsetY + position.y) * 0.5;
 
 		this.#updateZoomParameters(centerX, centerY);
 
 	}
 
-	#handleTouchMoveDollyPan = (event: PointerEvent) => {
+	#handleTouchMoveDollyPan = (event: PointerEventInfo) => {
 
 		if (this.enableZoom) this.#handleTouchMoveDolly(event);
 
@@ -585,14 +585,14 @@ class OrbitControls extends EventDispatcher<{
 
 	}
 
-	#handleTouchMoveDollyRotate = (event: PointerEvent) => {
+	#handleTouchMoveDollyRotate = (event: PointerEventInfo) => {
 
 		if (this.enableZoom) this.#handleTouchMoveDolly(event);
 
 		if (this.enableRotate) this.#handleTouchMoveRotate(event);
 
 	}
-	#trackPointer = (event: PointerEvent) => {
+	#trackPointer = (event: PointerEventInfo) => {
 
 		let position = this.#pointerPositions[event.pointerId];
 
@@ -603,11 +603,11 @@ class OrbitControls extends EventDispatcher<{
 
 		}
 
-		position.set(event.pageX, event.pageY);
+		position.set(event.offsetX, event.offsetY);
 
 	}
 
-	#getSecondPointerPosition = (event: PointerEvent) => {
+	#getSecondPointerPosition = (event: PointerEventInfo) => {
 
 		const pointerId = (event.pointerId === this.#pointers[0]) ? this.#pointers[1] : this.#pointers[0];
 
@@ -615,13 +615,13 @@ class OrbitControls extends EventDispatcher<{
 
 	}
 
-	#handleMouseDownRotate = (event: PointerEvent) => {
+	#handleMouseDownRotate = (event: PointerEventInfo) => {
 
 		this.#rotateStart.set(event.clientX, event.clientY);
 
 	}
 
-	#handleMouseDownDolly = (event: PointerEvent) => {
+	#handleMouseDownDolly = (event: PointerEventInfo) => {
 
 		this.#updateZoomParameters(event.clientX, event.clientX);
 		this.#dollyStart.set(event.clientX, event.clientY);
@@ -629,13 +629,13 @@ class OrbitControls extends EventDispatcher<{
 	}
 
 
-	#handleMouseDownPan(event: PointerEvent) {
+	#handleMouseDownPan(event: PointerEventInfo) {
 
 		this.#panStart.set(event.clientX, event.clientY);
 
 	}
 
-	#handleMouseMoveRotate = (event: PointerEvent) => {
+	#handleMouseMoveRotate = (event: PointerEventInfo) => {
 
 		this.#rotateEnd.set(event.clientX, event.clientY);
 
@@ -651,7 +651,7 @@ class OrbitControls extends EventDispatcher<{
 		this.update();
 
 	}
-	#isTrackingPointer(event: PointerEvent) {
+	#isTrackingPointer(event: PointerEventInfo) {
 
 		for (let i = 0; i < this.#pointers.length; i++) {
 
@@ -663,7 +663,7 @@ class OrbitControls extends EventDispatcher<{
 
 	}
 
-	#handleMouseMoveDolly = (event: PointerEvent) => {
+	#handleMouseMoveDolly = (event: PointerEventInfo) => {
 
 		this.#dollyEnd.set(event.clientX, event.clientY);
 
@@ -685,7 +685,7 @@ class OrbitControls extends EventDispatcher<{
 
 	}
 
-	#handleMouseMovePan = (event: PointerEvent) => {
+	#handleMouseMovePan = (event: PointerEventInfo) => {
 
 		this.#panEnd.set(event.clientX, event.clientY);
 
@@ -698,7 +698,7 @@ class OrbitControls extends EventDispatcher<{
 		this.update();
 
 	}
-	#onMouseDown = (event: PointerEvent) => {
+	#onMouseDown = (event: PointerEventInfo) => {
 
 		let mouseAction: number;
 
@@ -794,7 +794,7 @@ class OrbitControls extends EventDispatcher<{
 		}
 
 	}
-	#onMouseMove = (event: PointerEvent) => {
+	#onMouseMove = (event: PointerEventInfo) => {
 
 		switch (this.#state) {
 
@@ -867,7 +867,7 @@ class OrbitControls extends EventDispatcher<{
 
 
 
-	#onTouchStart = (event: PointerEvent) => {
+	#onTouchStart = (event: PointerEventInfo) => {
 
 		this.#trackPointer(event);
 
@@ -951,7 +951,7 @@ class OrbitControls extends EventDispatcher<{
 
 	}
 
-	#onTouchMove = (event: PointerEvent) => {
+	#onTouchMove = (event: PointerEventInfo) => {
 
 		this.#trackPointer(event);
 
@@ -1030,7 +1030,7 @@ class OrbitControls extends EventDispatcher<{
 	}
 
 
-	#handleKeyDown = (event: KeyboardEvent) => {
+	#handleKeyDown = (event: KeyBoardEventInfo) => {
 
 		let needsUpdate = false;
 
@@ -1101,7 +1101,6 @@ class OrbitControls extends EventDispatcher<{
 		if (needsUpdate) {
 
 			// prevent the browser from scrolling on cursor keys
-			event.preventDefault();
 
 			this.update();
 

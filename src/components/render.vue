@@ -52,7 +52,7 @@ onMounted(() => {
   canvas.width = unref(width)
   canvas.height = unref(height)
   const offscreen = canvas.transferControlToOffscreen()
-  
+
   dispatcher.initRender(offscreen)
 
   if (props.stateEnable) {
@@ -72,13 +72,15 @@ onBeforeUnmount(() => {
     state?.dom?.remove()
   }
 
-  gui?.destroy() 
+  gui?.destroy()
 })
 /**
  * 指针移动回调处理
  * @param params 
  */
 function handlerPointerMove(params: PointerEvent) {
+  console.log(params.type);
+
   if (!props.eventSetting?.move) {
     params.preventDefault()
     return
@@ -94,7 +96,6 @@ function handlerPointerDown(params: PointerEvent) {
 }
 function handlerWheelEvent(params: MouseEvent) {
   if (!props.eventSetting?.wheel) {
-    params.preventDefault()
     return
   }
   dispatcher.wheel(params)
@@ -104,14 +105,15 @@ function handlerContentMenu(params: MouseEvent) {
   console.log('此功能不可用');
 
 }
-function handlerPorinterCancel(params:PointerEvent) {
+function handlerPorinterCancel(params: PointerEvent) {
+  console.log('指针取消事件');
+
   dispatcher.onMouseUp(params)
-  
 }
 </script>
 
 <template>
-  <canvas @pointermove="handlerPointerMove" @pointercancel="handlerPorinterCancel" @pointerup="handlerPorinterCancel" @pointerdown="handlerPointerDown"
-    @wheel.passive="handlerWheelEvent" @contextmenu="handlerContentMenu" class="w-full h-full block"
-    ref="canvasRef"></canvas>
+  <canvas @pointermove="handlerPointerMove" @pointercancel="handlerPorinterCancel" @pointerout="handlerPorinterCancel"
+    @pointerup="handlerPorinterCancel" @pointerdown="handlerPointerDown" @wheel.passive="handlerWheelEvent"
+    @contextmenu="handlerContentMenu" class="w-full h-full block" ref="canvasRef"></canvas>
 </template>

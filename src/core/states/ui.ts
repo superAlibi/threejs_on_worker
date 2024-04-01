@@ -1,5 +1,6 @@
-import { PointerPosition } from 'R/core';
+import { PointerPosition } from 'R/core/types';
 import { Vector2 } from 'three';
+import { EventMap } from '../events';
 
 export interface PointerTransformData {
   width: number, height: number,
@@ -14,7 +15,6 @@ export function dom2GLPosition({ width, height, offsetX, offsetY }: PointerTrans
 export class UIState extends EventTarget {
   constructor() {
     super()
-
   }
   /**
    * 画布宽度
@@ -60,4 +60,22 @@ export class UIState extends EventTarget {
    * 鼠标上一次位置,原始坐标
    */
   lastOriginalXOY = new Vector2()
+  /**
+   * 事件监听类型申明
+   * @param type 
+   * @param callback 
+   * @param options 
+   */
+  override addEventListener<T extends keyof EventMap>(type: T, callback: (event: EventMap[T]) => void, options?: boolean | AddEventListenerOptions) {
+    super.addEventListener(type, (e) => callback(e as EventMap[T]), options)
+  }
+  /**
+   * 移除监听重写
+   * @param type 
+   * @param callback 
+   * @param options 
+   */
+  override removeEventListener<T extends keyof EventMap>(type: T, callback: (event: EventMap[T]) => void, options?: boolean | EventListenerOptions) {
+    super.removeEventListener(type, (e) => callback(e as EventMap[T]), options)
+  }
 }

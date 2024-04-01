@@ -3,17 +3,56 @@ export interface PointerPosition {
   x: number,
   y: number
 }
+/**
+ * 需要使用的鼠标指针事件键
+ */
+type PointerPickKeys = [
+  'clientX', 'clientY', 'pointerType',
+  'pointerId', 'width', 'height',
+  'pressure', 'tangentialPressure',
+  'tiltX', 'tiltY', 'twist',
+  'isPrimary', 'buttons', 'ctrlKey',
+  'shiftKey', 'altKey', 'metaKey',
+  "offsetX", "offsetY", 'type',
+  "button", 'timeStamp']
+
+export type PointerEventInfo = Pick<PointerEvent, PointerPickKeys[number]>
+/**
+ * 需要使用的键盘指针事件键
+ */
+type KeyboardPickKeys = [
+  'key', 'code', 'location',
+  'ctrlKey', 'shiftKey', 'altKey',
+  'metaKey', 'type', 'timeStamp'
+]
+export type KeyBoardEventInfo = Pick<KeyboardEvent, KeyboardPickKeys[number]>
+/**
+ * 需要使用的滚动事件键
+ */
+type WheelEventPickKeys = [
+  'deltaX', 'deltaY', 'deltaZ',
+  'deltaMode', 'ctrlKey', 'shiftKey',
+  'altKey', 'metaKey', 'type',
+  'timeStamp', 'clientX', 'clientY',
+  'ctrlKey', 'shiftKey', 'altKey',
+  'metaKey', 'type', 'timeStamp',
+]
+export type WheelEventInfo = Pick<WheelEvent, WheelEventPickKeys[number]>
+
+
 
 /**
- * 
+ * 从postmessage接收到的事件映射对象
  */
 export interface MessageEventMap {
   init: { canvas: OffscreenCanvas, setting?: Settings },
   resize: { width: number, height: number },
-  pointer:any,
-  touch:any,
-  keyboard:any,
-  setting:any
+  pointermove: PointerEventInfo,
+  pointerup: PointerEventInfo,
+  pointerdown: PointerEventInfo,
+  touch: PointerEventInfo,
+  keyboard: KeyBoardEventInfo,
+  setting: any
 }
 export interface SceneSetting {
   background: { type?: 'url' | 'hex', value?: string | number },

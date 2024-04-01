@@ -1,7 +1,31 @@
 
 
-import { MessageEventMap, Settings } from "../core/types"
+import { MessageEventMap, PointerEventInfo, Settings } from "../core/types"
 import InnterWorker from 'R/core/EventHandler?worker'
+
+function getPointerEventInfo(e: PointerEvent): PointerEventInfo {
+  const { clientX,
+    clientY, pointerType,
+    pointerId, width, height,
+    pressure, tangentialPressure,
+    tiltX, tiltY, twist,
+    isPrimary, buttons, ctrlKey,
+    shiftKey, altKey, metaKey,
+    offsetX, offsetY, type,
+    button, timeStamp } = e
+  const pointerEventInfo: PointerEventInfo = {
+    clientX,
+    clientY, pointerType,
+    pointerId, width, height,
+    pressure, tangentialPressure,
+    tiltX, tiltY, twist,
+    isPrimary, buttons, ctrlKey,
+    shiftKey, altKey, metaKey,
+    offsetX, offsetY, type,
+    button, timeStamp
+  }
+  return pointerEventInfo
+}
 
 /**
  * 主要用于类型提示的类
@@ -23,31 +47,22 @@ export class EventInteractor {
   #resizeTimeoutId: number = 0
   renderWorker = new RenderWorker()
   constructor() {
-
-
-  }
-  initRender(offscreen: OffscreenCanvas, setting: Settings=new Settings()) {
-    console.log(offscreen);
     
-
+  }
+  initRender(offscreen: OffscreenCanvas, setting: Settings = new Settings()) {
     this.renderWorker.postMessage('init', {
       canvas: offscreen,
       setting
     }, [offscreen])
   }
   onMouseDown = (e: PointerEvent) => {
-    // this.renderWorker.postMessage('pointer', e)
+    this.renderWorker.postMessage('pointerdown', getPointerEventInfo(e))
   }
   onMouseUp = (e: PointerEvent) => {
-    // for (const key in e) {
-    //   // console.log(key);
-    //   console.log(key , typeof e[key]);
-     
-    // }
-    // this.renderWorker.postMessage('pointer', e)
+    this.renderWorker.postMessage('pointerup', getPointerEventInfo(e))
   }
   onMouseMove = (e: PointerEvent) => {
-    
+    this.renderWorker.postMessage('pointermove', getPointerEventInfo(e))
   }
   resize(width: number, height: number) {
     if (this.#resizeTimeoutId) {
