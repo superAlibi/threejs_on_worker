@@ -11,7 +11,7 @@ import { EffectComposer, OutlinePass, RenderPass } from '../Addons.js'
 
 import {
   BoxMatrix
-} from "R/models";
+} from "../../models/BoxMatrix.ts";
 import { CameraSetting, RenderSetting, SceneSetting, Settings } from '../types.js';
 
 

@@ -1,6 +1,6 @@
 
 
-import { MessageEventMap, PointerEventInfo, Settings } from "../core/types"
+import { MessageEventMap, PointerEventInfo, Settings } from "../core/types.ts"
 
 function getPointerEventInfo(e: PointerEvent): PointerEventInfo {
   const { clientX,

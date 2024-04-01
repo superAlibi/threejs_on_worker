@@ -1,9 +1,9 @@
 
-import { MessageEventMap, PointerEventInfo, Settings, } from './types';
-import { InitEvent, ChangeEvent, ResizeEvent } from './events';
-import { OrbitControls } from './Addons'
-import { UIState } from './states/ui';
-import { Renderer } from './states/renderer';
+import { MessageEventMap, PointerEventInfo, Settings, } from './types.ts';
+import { InitEvent, ChangeEvent, ResizeEvent } from './events/index.ts';
+import { OrbitControls } from './Addons.js'
+import { UIState } from './states/ui.ts';
+import { Renderer } from './states/renderer.ts';
 let renderer: Renderer,
   stateMgr: StateManager
 /**
