@@ -1,7 +1,6 @@
 
 
 import { MessageEventMap, PointerEventInfo, Settings } from "../core/types"
-import InnterWorker from 'R/core/EventHandler?worker'
 
 function getPointerEventInfo(e: PointerEvent): PointerEventInfo {
   const { clientX,
@@ -31,9 +30,14 @@ function getPointerEventInfo(e: PointerEvent): PointerEventInfo {
  * 主要用于类型提示的类
  */
 class RenderWorker<T extends MessageEventMap = MessageEventMap>  {
-  worker: Worker
+
+  worker: Worker=new Worker(new URL('worker.ts', import.meta.url),{type:'module'})
   constructor() {
-    this.worker = new InnterWorker()
+    // this.worker = new InnterWorker()
+    this.worker.addEventListener('message', this.workerOnMessage)
+    this.worker.addEventListener('error', (e) => {
+      alert( e.message)
+    })
   }
   postMessage<K extends keyof T = keyof MessageEventMap>(type: K, data: T[K], transfer?: Transferable[]): void {
     if (transfer) {
@@ -42,12 +46,18 @@ class RenderWorker<T extends MessageEventMap = MessageEventMap>  {
       this.worker.postMessage({ type, ...data })
     }
   }
+  workerOnMessage = (e: MessageEvent) => {
+    alert(JSON.stringify(e.data))
+  }
 }
-export class EventInteractor {
+// https://gitee.com/alibi-jia/threejs_on_worker.git
+export class EventInteractor extends EventTarget {
   #resizeTimeoutId: number = 0
   renderWorker = new RenderWorker()
+
   constructor() {
-    
+    super()
+  
   }
   initRender(offscreen: OffscreenCanvas, setting: Settings = new Settings()) {
     this.renderWorker.postMessage('init', {

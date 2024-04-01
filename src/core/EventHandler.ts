@@ -107,11 +107,13 @@ const receiver: EventReceiver = {
 
 self.addEventListener("message", (e) => {
   const { data: { type, ...ops } } = e
-  const handler=receiver[type as keyof MessageEventMap]
-  if(handler){
+  const handler = receiver[type as keyof MessageEventMap]
+  if (handler) {
     handler(ops)
-  }else{
+  } else {
     console.warn(`未处理的事件类型${type}`)
   }
 })
-self.addEventListener('error', console.error);
+self.addEventListener('error', (e) => {
+  self.postMessage({ error: e.message, stack: e.error.stack })
+})

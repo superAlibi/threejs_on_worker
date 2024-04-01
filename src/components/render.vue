@@ -52,7 +52,6 @@ onMounted(() => {
   canvas.width = unref(width)
   canvas.height = unref(height)
   const offscreen = canvas.transferControlToOffscreen()
-
   dispatcher.initRender(offscreen)
 
   if (props.stateEnable) {
