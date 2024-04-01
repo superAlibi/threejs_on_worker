@@ -1,6 +1,6 @@
 import { MOUSE, TOUCH } from 'three';
 
-import { OrbitControls } from './OrbitControls';
+import { OrbitControls } from './OrbitControls.ts';
 
 // MapControls performs orbiting, dollying (zooming), and panning.
 // Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
@@ -11,9 +11,9 @@ import { OrbitControls } from './OrbitControls';
 
 class MapControls extends OrbitControls {
 
-	constructor( object, domElement ) {
+	constructor( object  ) {
 
-		super( object, domElement );
+		super( object, null,0,0 );
 
 		this.screenSpacePanning = false; // pan orthogonal to world-space direction camera.up
 
