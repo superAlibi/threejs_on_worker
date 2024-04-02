@@ -113,13 +113,13 @@ export class Renderer {
     }
 
   }
-  begenRender(n: number = 0) {
-
+  begenRender() {
+    
     if (this.rayHitsSet) {
       const theFirst = this.rayHitsSet.at(0)
       this.outline.selectedObjects = theFirst ? [theFirst.object] : []
     }
-    this.#animalId = requestAnimationFrame((n) => this.begenRender(n))
+    this.#animalId = requestAnimationFrame(() => this.begenRender())
     this.composer.render()
   }
   distory() {

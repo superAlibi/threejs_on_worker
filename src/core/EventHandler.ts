@@ -53,10 +53,10 @@ class OrbitHandler {
 /**
  * 测量处理类
  */
-class MeasureHandler {
+/* class MeasureHandler {
 
 }
-
+ */
 type EventReceiver<T extends MessageEventMap = MessageEventMap> = {
   [prop in keyof T]: (p: T[prop]) => void
 } & {
@@ -79,28 +79,30 @@ const receiver: EventReceiver = {
     stateMgr.addEventListener('change', orbitHandler.handler);
   },
   setting(t: MessageEventMap['setting']) {
+    console.log(t);
+
   },
   resize(t: MessageEventMap['resize']) {
     stateMgr.resize(t.width, t.height);
   },
   keyboard(t: MessageEventMap['keyboard']) {
-
+    console.log(t);
   },
 
   pointermove(p: MessageEventMap['pointermove']) {
-
+    console.log(p);
 
   },
   pointerup(p: PointerEventInfo): void {
-
+    console.log(p);
 
   },
   pointerdown(p: PointerEventInfo): void {
-
+    console.log(p);
 
   },
   touch(p: any) {
-
+    console.log(p);
   },
 
 }
